@@ -1,7 +1,16 @@
+import { auth } from "@opencut/auth/server";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
   // Handle fuckcapcut.com domain redirect
   if (request.headers.get("host") === "fuckcapcut.com") {
     return NextResponse.redirect("https://opencut.app/why-not-capcut", 301);
@@ -19,14 +28,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/projects", "/editor/:path*"],
 };
